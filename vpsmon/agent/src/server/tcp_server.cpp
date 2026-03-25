@@ -2,6 +2,7 @@
 
 #include "server/request_parser.hpp"
 #include "util/logger.hpp"
+#include "util/self_updater.hpp"
 
 #include <algorithm>
 #include <arpa/inet.h>
@@ -37,13 +38,6 @@ std::string tailFile(const std::string& path, int lines) {
     }
     return out.str();
 }
-
-class SelfUpdater {
-public:
-    static void performUpdate() {
-        LOG_INFO("self update initiated");
-    }
-};
 
 }  // namespace
 
@@ -205,7 +199,7 @@ std::string TcpServer::dispatch(const std::string& rawRequest, const std::string
         return jsonErr("self-update requires TLS — recompile with make TLS=1");
 #else
         if (!isLoopback(ip)) return jsonErr("update only allowed from loopback");
-        std::thread([]() { SelfUpdater::performUpdate(); }).detach();
+        std::thread([]() { (void)SelfUpdater::performUpdate("yourname", "vpsmon"); }).detach();
         return jsonOk("{\"status\":\"update initiated, agent will restart\"}");
 #endif
     }

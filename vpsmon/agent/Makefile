@@ -21,6 +21,12 @@ COLOR_RESET := \033[0m
 OK_MARK := $(COLOR_OK)✓$(COLOR_RESET)
 
 AGENT_SOURCES := $(wildcard src/*.cpp src/storage/*.cpp src/collectors/*.cpp src/server/*.cpp src/alerts/*.cpp src/alerts/channels/*.cpp src/config/*.cpp src/util/*.cpp)
+AGENT_SOURCES := $(filter-out src/util/self_updater.cpp,$(AGENT_SOURCES))
+ifeq ($(TLS),1)
+CXXFLAGS += $(TLS_FLAGS)
+LDFLAGS += $(TLS_LIBS)
+AGENT_SOURCES += src/util/self_updater.cpp
+endif
 TUI_SOURCES := $(wildcard tui/*.cpp)
 COMMON_TUI_SOURCES := $(filter-out src/main.cpp,$(AGENT_SOURCES))
 AGENT_OBJECTS := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(AGENT_SOURCES))

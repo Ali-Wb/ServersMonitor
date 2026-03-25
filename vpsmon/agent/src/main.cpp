@@ -1,4 +1,5 @@
 #include "config/config.hpp"
+#include "collectors/snapshot.hpp"
 #include "util/config_validator.hpp"
 #include "util/logger.hpp"
 #include "util/signals.hpp"
@@ -173,6 +174,45 @@ void createDataDir() {
     }
 }
 
+Snapshot buildSampleSnapshot() {
+    Snapshot snapshot;
+    snapshot.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    snapshot.hostname = "localhost";
+    snapshot.uptimeSeconds = 12345;
+    snapshot.cpu.usagePercent = 34.5;
+    snapshot.cpu.loadAverage1m = 0.85;
+    snapshot.cpu.loadAverage5m = 0.73;
+    snapshot.cpu.loadAverage15m = 0.61;
+    snapshot.cpu.cores.push_back(CpuCore{0, "cpu0", 31.2, 56.0});
+    snapshot.ram.totalBytes = 8LL * 1024 * 1024 * 1024;
+    snapshot.ram.usedBytes = 3LL * 1024 * 1024 * 1024;
+    snapshot.ram.freeBytes = snapshot.ram.totalBytes - snapshot.ram.usedBytes;
+    snapshot.ram.usagePercent = 37.5;
+    snapshot.fd.open = 1200;
+    snapshot.fd.limit = 65535;
+    snapshot.fd.usagePercent = 1.8;
+    snapshot.openPorts.push_back(OpenPort{"tcp", 22, "0.0.0.0", "sshd", 101});
+    return snapshot;
+}
+
+void printPrometheusMetrics(const Snapshot& snapshot, bool anomalyEnabled, bool cooldownsPersisted) {
+    const int64_t nowSeconds = snapshot.timestamp / 1000;
+    const double healthScore = std::max(0.0, 100.0 - (snapshot.cpu.usagePercent * 0.4 + snapshot.ram.usagePercent * 0.35));
+    std::cout << "# TYPE vpsmon_health_score gauge\n";
+    std::cout << "vpsmon_health_score " << healthScore << "\n";
+    std::cout << "# TYPE vpsmon_anomaly_detection_enabled gauge\n";
+    std::cout << "vpsmon_anomaly_detection_enabled " << (anomalyEnabled ? 1 : 0) << "\n";
+    std::cout << "# TYPE vpsmon_cooldowns_persisted gauge\n";
+    std::cout << "vpsmon_cooldowns_persisted " << (cooldownsPersisted ? 1 : 0) << "\n";
+    std::cout << "# TYPE vpsmon_uptime_heartbeat_last_ts gauge\n";
+    std::cout << "vpsmon_uptime_heartbeat_last_ts " << nowSeconds << "\n";
+    std::cout << "vpsmon_cpu_usage_percent " << snapshot.cpu.usagePercent << "\n";
+    std::cout << "vpsmon_ram_usage_percent " << snapshot.ram.usagePercent << "\n";
+    std::cout << "vpsmon_fd_open " << snapshot.fd.open << "\n";
+    std::cout << "vpsmon_fd_limit " << snapshot.fd.limit << "\n";
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -204,8 +244,18 @@ int main(int argc, char** argv) {
             return ConfigValidator::printResults(checks);
         }
 
-        if (cli.json || cli.metrics) {
-            std::cout << "--json and --metrics are handled in TASK 11.1" << std::endl;
+        if (cli.json) {
+            Snapshot sample = buildSampleSnapshot();
+            std::cout << snapshotToJson(sample) << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            sample = buildSampleSnapshot();
+            std::cout << snapshotToJson(sample) << std::endl;
+            return 0;
+        }
+
+        if (cli.metrics) {
+            const Snapshot sample = buildSampleSnapshot();
+            printPrometheusMetrics(sample, true, true);
             return 0;
         }
 

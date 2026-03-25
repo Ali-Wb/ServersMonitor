@@ -7,17 +7,6 @@ import type { OpenPort } from "@/lib/schemas";
 
 interface PortsPanelProps { ports: OpenPort[] }
 
-const WELL_KNOWN_PORTS: Record<number, string> = {
-  22: "SSH",
-  53: "DNS",
-  80: "HTTP",
-  123: "NTP",
-  443: "HTTPS",
-  3306: "MySQL",
-  5432: "PostgreSQL",
-  6379: "Redis",
-};
-
 export function PortsPanel({ ports }: PortsPanelProps) {
   const sorted = [...ports].sort((a, b) => a.port - b.port);
   return (
