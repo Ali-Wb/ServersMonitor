@@ -1,0 +1,87 @@
+<svg width="1280" height="720" viewBox="0 0 1280 720" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">VPSMon dashboard preview</title>
+  <desc id="desc">Stylized light-mode preview of VPSMon web dashboard with status cards, charts, alerts, and activity panels.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#E2E8F0"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="160" y1="90" x2="1120" y2="90" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#0EA5E9"/>
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#bg)"/>
+
+  <!-- App shell -->
+  <rect x="64" y="40" width="1152" height="640" rx="18" fill="#FFFFFF" filter="url(#shadow)"/>
+
+  <!-- Header -->
+  <rect x="64" y="40" width="1152" height="100" rx="18" fill="url(#brand)"/>
+  <text x="104" y="100" fill="white" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">VPSMon</text>
+  <text x="250" y="100" fill="#DBEAFE" font-family="Inter, Arial, sans-serif" font-size="16">Infrastructure Health Dashboard</text>
+  <rect x="980" y="68" width="100" height="42" rx="10" fill="#1D4ED8"/>
+  <text x="1008" y="95" fill="#E0E7FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600">Alerts</text>
+  <rect x="1094" y="68" width="94" height="42" rx="10" fill="#1D4ED8"/>
+  <text x="1118" y="95" fill="#E0E7FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600">Export</text>
+
+  <!-- KPI cards -->
+  <g font-family="Inter, Arial, sans-serif">
+    <rect x="96" y="164" width="260" height="120" rx="14" fill="#F8FAFC" stroke="#E2E8F0"/>
+    <text x="118" y="197" fill="#334155" font-size="14">Health Score</text>
+    <text x="118" y="247" fill="#0F172A" font-size="40" font-weight="700">92</text>
+    <circle cx="302" cy="222" r="18" fill="#DCFCE7"/>
+
+    <rect x="372" y="164" width="260" height="120" rx="14" fill="#F8FAFC" stroke="#E2E8F0"/>
+    <text x="394" y="197" fill="#334155" font-size="14">CPU Usage</text>
+    <text x="394" y="247" fill="#0F172A" font-size="40" font-weight="700">36%</text>
+    <rect x="544" y="214" width="66" height="12" rx="6" fill="#DBEAFE"/>
+
+    <rect x="648" y="164" width="260" height="120" rx="14" fill="#F8FAFC" stroke="#E2E8F0"/>
+    <text x="670" y="197" fill="#334155" font-size="14">RAM Usage</text>
+    <text x="670" y="247" fill="#0F172A" font-size="40" font-weight="700">58%</text>
+    <rect x="820" y="214" width="66" height="12" rx="6" fill="#E0E7FF"/>
+
+    <rect x="924" y="164" width="260" height="120" rx="14" fill="#F8FAFC" stroke="#E2E8F0"/>
+    <text x="946" y="197" fill="#334155" font-size="14">Uptime</text>
+    <text x="946" y="247" fill="#0F172A" font-size="40" font-weight="700">99.98%</text>
+  </g>
+
+  <!-- Main panels -->
+  <rect x="96" y="304" width="710" height="340" rx="14" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="122" y="338" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600">Performance Trends</text>
+
+  <!-- Chart grid -->
+  <g stroke="#E2E8F0" stroke-width="1">
+    <line x1="122" y1="380" x2="780" y2="380"/>
+    <line x1="122" y1="430" x2="780" y2="430"/>
+    <line x1="122" y1="480" x2="780" y2="480"/>
+    <line x1="122" y1="530" x2="780" y2="530"/>
+    <line x1="122" y1="580" x2="780" y2="580"/>
+  </g>
+
+  <!-- Chart lines -->
+  <polyline points="122,520 180,500 240,510 300,470 360,450 420,420 480,440 540,390 600,410 660,360 720,340 780,350"
+            fill="none" stroke="#2563EB" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="122,560 180,550 240,540 300,525 360,510 420,505 480,500 540,495 600,480 660,470 720,465 780,460"
+            fill="none" stroke="#0EA5E9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Right sidebar -->
+  <rect x="824" y="304" width="360" height="164" rx="14" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="848" y="338" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600">Active Alerts</text>
+  <rect x="848" y="356" width="312" height="38" rx="10" fill="#FEF2F2"/>
+  <text x="866" y="380" fill="#B91C1C" font-family="Inter, Arial, sans-serif" font-size="13">disk.root &gt; 85% on web-01</text>
+  <rect x="848" y="402" width="312" height="38" rx="10" fill="#FFF7ED"/>
+  <text x="866" y="426" fill="#C2410C" font-family="Inter, Arial, sans-serif" font-size="13">cpu.usage spike detected</text>
+
+  <rect x="824" y="480" width="360" height="164" rx="14" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="848" y="514" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600">Recent Activity</text>
+  <text x="848" y="544" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="13">• Share link created for db-prod</text>
+  <text x="848" y="570" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="13">• Maintenance window enabled</text>
+  <text x="848" y="596" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="13">• PDF summary exported</text>
+</svg>

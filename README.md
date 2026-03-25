@@ -6,8 +6,15 @@ VPSMon is designed for operators who want lightweight host-side metric collectio
 
 ---
 
+## Preview
+
+![VPSMon dashboard preview](assets/vpsmon-preview.svg)
+
+---
+
 ## Table of Contents
 
+- [Preview](#preview)
 - [Why VPSMon](#why-vpsmon)
 - [Architecture](#architecture)
 - [Core Features](#core-features)
