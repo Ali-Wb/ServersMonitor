@@ -33,7 +33,14 @@ export function DashboardLayout({ children, serverId, serverName, isOnline, isMa
                 <Badge className={isOnline ? "" : "bg-red-600 text-white"}>{isOnline ? "Online" : "Offline"}</Badge>
               </>
             ) : (
-              <ServerSearch />
+              <ServerSearch
+                value=""
+                onChange={() => {}}
+                statusFilter="all"
+                onStatusFilterChange={() => {}}
+                cpuFilter="all"
+                onCpuFilterChange={() => {}}
+              />
             )}
           </div>
 
