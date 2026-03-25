@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <filesystem>
+#include <ctime>
 #include <sstream>
 #include <stdexcept>
 
@@ -161,6 +162,12 @@ void MetricsStore::createSchema() {
         "last_fired_ms INTEGER NOT NULL"
         ");"
     );
+    db_->exec(
+        "CREATE TABLE IF NOT EXISTS api_keys("
+        "key_hash TEXT PRIMARY KEY,"
+        "created_at INTEGER"
+        ");"
+    );
 }
 
 void MetricsStore::ensureOpen() const {
@@ -302,6 +309,97 @@ std::map<std::string, int64_t> MetricsStore::loadCooldowns() const {
     }
 
     return cooldowns;
+}
+
+std::vector<AlertRow> MetricsStore::queryAlerts(int limit) const {
+    ensureOpen();
+    const int safeLimit = std::clamp(limit, 1, 500);
+    const Database::QueryResult rows = db_->query(
+        "SELECT id,timestamp,metric,value,threshold,message,severity,resolved_at,acknowledged,acknowledged_by,"
+        "acknowledged_at,is_anomaly,anomaly_sigma FROM alerts ORDER BY timestamp DESC LIMIT ?;",
+        {std::to_string(safeLimit)}
+    );
+    std::vector<AlertRow> out;
+    out.reserve(rows.size());
+    for (const auto& row : rows) {
+        AlertRow a;
+        a.id = static_cast<int>(toInt64(row.at("id")));
+        a.timestamp = toInt64(row.at("timestamp"));
+        a.metric = row.at("metric");
+        a.value = toDouble(row.at("value"));
+        a.threshold = toDouble(row.at("threshold"));
+        a.message = row.at("message");
+        a.severity = row.at("severity");
+        a.resolved_at = toInt64(row.at("resolved_at"));
+        a.acknowledged = toInt64(row.at("acknowledged")) != 0;
+        a.acknowledged_by = row.at("acknowledged_by");
+        a.acknowledged_at = toInt64(row.at("acknowledged_at"));
+        a.is_anomaly = toInt64(row.at("is_anomaly")) != 0;
+        a.anomaly_sigma = toDouble(row.at("anomaly_sigma"));
+        out.push_back(a);
+    }
+    return out;
+}
+
+bool MetricsStore::resolveAlert(int alertId, int64_t resolvedAtMs) {
+    ensureOpen();
+    db_->exec(
+        "UPDATE alerts SET resolved_at=? WHERE id=?;",
+        {std::to_string(resolvedAtMs), std::to_string(alertId)}
+    );
+    return true;
+}
+
+bool MetricsStore::acknowledgeAlert(int alertId, const std::string& acknowledgedBy, int64_t acknowledgedAtMs) {
+    ensureOpen();
+    const int64_t ts = acknowledgedAtMs > 0 ? acknowledgedAtMs : nowMs();
+    db_->exec(
+        "UPDATE alerts SET acknowledged=1, acknowledged_by=?, acknowledged_at=? WHERE id=?;",
+        {acknowledgedBy, std::to_string(ts), std::to_string(alertId)}
+    );
+    return true;
+}
+
+UptimeStats MetricsStore::queryUptime(const std::string& period) const {
+    ensureOpen();
+    const int64_t nowTs = nowMs();
+    int64_t fromTs = nowTs - 24LL * 60LL * 60LL * 1000LL;
+    if (period == "7d") fromTs = nowTs - 7LL * 24LL * 60LL * 60LL * 1000LL;
+    else if (period == "30d") fromTs = nowTs - 30LL * 24LL * 60LL * 60LL * 1000LL;
+    const Database::QueryResult rows = db_->query(
+        "SELECT timestamp,status FROM uptime_log WHERE timestamp>=? ORDER BY timestamp ASC;",
+        {std::to_string(fromTs)}
+    );
+    UptimeStats stats;
+    stats.period = period.empty() ? "24h" : period;
+    stats.expectedSeconds = (nowTs - fromTs) / 1000;
+    int64_t upRows = 0;
+    for (const auto& row : rows) {
+        if (row.at("status") == "up") upRows++;
+    }
+    stats.uptimeSeconds = upRows * 60;
+    stats.uptimePercent = stats.expectedSeconds > 0
+        ? (100.0 * static_cast<double>(stats.uptimeSeconds) / static_cast<double>(stats.expectedSeconds))
+        : 0.0;
+    return stats;
+}
+
+void MetricsStore::updateAnomalyBaseline() {
+    ensureOpen();
+    std::time_t now = std::time(nullptr);
+    std::tm* gmt = std::gmtime(&now);
+    const int hour = gmt != nullptr ? gmt->tm_hour : 0;
+    const int64_t tsMs = nowMs();
+    const Database::QueryResult metrics = db_->query("SELECT DISTINCT metric FROM metrics_raw;");
+    for (const auto& row : metrics) {
+        const std::string metric = row.at("metric");
+        db_->exec(
+            "INSERT INTO anomaly_baseline(metric,hour,mean,stddev,computed_at) "
+            "SELECT ?, ?, COALESCE(AVG(value),0), COALESCE(STDDEV(value),0), ? FROM metrics_raw WHERE metric=? "
+            "ON CONFLICT(metric,hour) DO UPDATE SET mean=excluded.mean,stddev=excluded.stddev,computed_at=excluded.computed_at;",
+            {metric, std::to_string(hour), std::to_string(tsMs), metric}
+        );
+    }
 }
 
 void MetricsStore::aggregateAndPrune(

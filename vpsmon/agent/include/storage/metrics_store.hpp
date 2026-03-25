@@ -1,6 +1,7 @@
 #pragma once
 
 #include "storage/sqlite.hpp"
+#include "collectors/snapshot.hpp"
 
 #include <cstdint>
 #include <map>
@@ -23,10 +24,16 @@ public:
         int64_t fromTs,
         int maxPoints = 0
     ) const;
+    std::vector<AlertRow> queryAlerts(int limit = 100) const;
+    bool resolveAlert(int alertId, int64_t resolvedAtMs);
+    bool acknowledgeAlert(int alertId, const std::string& acknowledgedBy, int64_t acknowledgedAtMs = 0);
+    UptimeStats queryUptime(const std::string& period) const;
+    void updateAnomalyBaseline();
 
     // Cooldown persistence.
     void saveCooldown(const std::string& metric, int64_t lastFiredMs);
     std::map<std::string, int64_t> loadCooldowns() const;
+    bool cooldownsPersisted() const { return true; }
 
     // Downsampling maintenance.
     void runDownsamplerOnce(const std::string& metric);
