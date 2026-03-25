@@ -1,37 +1,42 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { LatencySparkline } from "@/components/charts/LatencySparkline";
+import { Sparkline } from "@/components/charts/Sparkline";
+import { ServerHeader } from "@/components/panels/ServerHeader";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
+  const spark = [12, 25, 18, 32, 20, 24, 29, 31, 22, 19];
+  const latency = [8, 10, 6, 14, 12, 9, 7, 11, 6, 8];
+
   return (
-    <main className="flex min-h-screen items-center justify-center p-8">
-      <Card className="w-full max-w-3xl animate-[fadeInUp_0.4s_ease-out]">
-        <CardHeader>
-          <Badge>VPS Health Dashboard</Badge>
-          <CardTitle className="mt-4">VPS Monitor</CardTitle>
-          <CardDescription>
-            The web frontend scaffold now includes the requested provider stack,
-            Tailwind v4 theme tokens, and owned UI primitives under
-            <code className="ml-1 font-mono">components/ui</code>.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm text-[var(--color-muted-foreground)]">
-              <span>Scaffold completion</span>
-              <span>100%</span>
+    <DashboardLayout>
+      <div className="space-y-4">
+        <ServerHeader
+          hostname="prod-a.example.internal"
+          uptime="17d 04h"
+          loadAvg1={0.65}
+          loadAvg5={0.72}
+          loadAvg15={0.70}
+          isOnline
+          lastUpdated={Date.now() - 4000}
+          healthScore={92}
+          agentVersion="0.1.0"
+          isMaintenance={false}
+        />
+
+        <Card>
+          <CardContent className="flex flex-wrap items-center gap-6 p-4">
+            <div>
+              <div className="mb-1 text-xs text-muted-foreground">CPU trend</div>
+              <Sparkline values={spark} />
             </div>
-            <Progress value={100} />
-          </div>
-          <Separator />
-          <div className="flex flex-wrap gap-3">
-            <Button>Open dashboard</Button>
-            <Button variant="secondary">Configure providers</Button>
-          </div>
-        </CardContent>
-      </Card>
-    </main>
+            <div>
+              <div className="mb-1 text-xs text-muted-foreground">Latency</div>
+              <LatencySparkline values={latency} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
 }
